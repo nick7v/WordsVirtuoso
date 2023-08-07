@@ -1,24 +1,38 @@
 package wordsvirtuoso
 
-fun main() {
-    /**
-     * if you remove the try catch expression and change "throw Exception" to "println",
-     * the test will also be passed, but in real life there are other exception, such as EOF
-     */
+import java.io.File
+import kotlin.system.exitProcess
 
+fun main(args: Array<String>) {
+    when {
+        args.size != 2 -> "Error: Wrong number of arguments."
+        !File(args[0]).exists() -> "Error: The words file ${args[0]} doesn't exist."
+        !File(args[1]).exists() -> "Error: The candidate words file ${args[1]} doesn't exist."
+        else -> checkFiles(args[0], args[1])
+    }.let(::println)
+}
 
+fun checkFiles(allWords: String, candidatesWords: String): String {
+    val allWordsList = checkInvalidWords(allWords)
+    val candidatesWordsList = checkInvalidWords(candidatesWords).toMutableList()
 
-    println("Input a 5-letter string:")
-    try {
-        with(readln()) {
-            when {
-                this.length != 5 -> throw Exception("The input isn't a 5-letter string.")
-                !"[a-zA-Z]+".toRegex().matches(this) -> throw Exception("The input has invalid characters.")
-                this.toSet().size != 5 -> throw Exception("The input has duplicate letters.")
-                else -> throw Exception("The input is a valid string.")
-            }
+    candidatesWordsList.removeAll(allWordsList)
+    return if (candidatesWordsList.size != 0)
+        "Error: ${candidatesWordsList.size} candidate words are not included in the $allWords file."
+    else "Words Virtuoso"
+}
+
+fun checkInvalidWords(fileName: String): List<String> {
+    val listOfWords = File(fileName).readLines().map { it.lowercase() }
+    var numberInvalidWords = 0
+    listOfWords.forEach {
+        if (!Regex("[a-z]{5}").matches(it) || it.toSet().size != 5) {
+            numberInvalidWords++
         }
-    } catch (e: Exception) {
-        println(e.message)
     }
+    return if (numberInvalidWords != 0) {
+        println("Error: $numberInvalidWords invalid words were found in the $fileName file.")
+        exitProcess(0)
+    }
+    else listOfWords
 }
