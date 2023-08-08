@@ -1,5 +1,0 @@
-bridge
-set
-hello
-ήλιος
-VÊTÎT
