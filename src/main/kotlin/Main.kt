@@ -5,7 +5,11 @@ import kotlin.system.exitProcess
 
 class Words(private val files: Array<String>) {
     private val allWordsList = mutableListOf<String>()
+    private val listOfClue = mutableListOf<String>()
+    private var incorrectLetters = ""
     private var secretWord = ""
+    private var attemptNumber = 0
+    private var startTime: Long = 0
 
     fun start() {
         when {
@@ -44,6 +48,7 @@ class Words(private val files: Array<String>) {
     }
 
     private fun startGame () {
+        startTime = System.currentTimeMillis()
         while (true) {
             println("\nInput a 5-letter word:")
             with(readln().lowercase()) {
@@ -65,15 +70,33 @@ class Words(private val files: Array<String>) {
 
     private fun checkInputIsSecretWord (input: String): String {
         var clue = ""
+        attemptNumber++
         for (index in 0..4) {
             clue += when {
                 input[index] == secretWord[index] -> input[index].uppercase()
                 input[index] in secretWord -> input[index]
-                else -> "_"
+                else -> "_".also { incorrectLetters += input[index].uppercase() }
             }
         }
-        if (clue.lowercase() == secretWord) println("Correct!").also { exitProcess(1) }
-        return clue
+
+        if (clue.lowercase() == secretWord) {
+            if (attemptNumber == 1) {
+                println("${clue.uppercase()}\nCorrect!")
+                println("Amazing luck! The solution was found at once.")}
+            else {
+                println(listOfClue.joinToString("\n"))
+                println("\n${clue.uppercase()}\nCorrect!")
+                println("The solution was found after $attemptNumber tries " +
+                        "in ${(System.currentTimeMillis() - startTime) / 100} seconds.")
+            }
+            exitProcess(1)
+        }
+
+        listOfClue.add(clue)
+        return buildString {
+            append(listOfClue.joinToString("\n"))
+            append("\n${incorrectLetters.toSortedSet().joinToString("")}")
+        }
     }
 }
 
